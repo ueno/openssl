@@ -9,6 +9,7 @@
 
 #include <openssl/ocsp.h>
 #include "../ssl_local.h"
+#include "internal/audit.h"
 #include "internal/cryptlib.h"
 #include "statem_local.h"
 
@@ -1699,6 +1700,9 @@ int tls_parse_stoc_ems(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     s->s3.flags |= TLS1_FLAGS_RECEIVED_EXTMS;
     if (!s->hit)
         s->session->flags |= SSL_SESS_FLAG_EXTMS;
+
+    CRYPTO_AUDITING_WORD_DATA(&s->session,
+			      "tls::ext::extended_master_secret", 1);
 
     return 1;
 }

@@ -10,6 +10,7 @@
 #include <openssl/ocsp.h>
 #include "../ssl_local.h"
 #include "statem_local.h"
+#include "internal/audit.h"
 #include "internal/cryptlib.h"
 
 #define COOKIE_STATE_FORMAT_VERSION     1
@@ -932,6 +933,8 @@ int tls_parse_ctos_ems(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
         return 1;
 
     s->s3.flags |= TLS1_FLAGS_RECEIVED_EXTMS;
+
+    CRYPTO_AUDITING_WORD_DATA(&s->session, "tls::ext::extended_master_secret", 1);
 
     return 1;
 }
