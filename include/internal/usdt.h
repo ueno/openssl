@@ -14,15 +14,11 @@
 #include <openssl/opensslconf.h>
 
 #ifndef OPENSSL_NO_USDT
-#include <openssl/crypto.h>
 #include <stdint.h>
 #include <sys/sdt.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* Use the load address of OPENSSL_init as the global context */
-#define OSSL_USDT_GLOBAL_CONTEXT OPENSSL_init
 
 typedef struct ossl_usdt_data_st {
     char *key;
@@ -37,33 +33,39 @@ typedef struct ossl_usdt_data_st {
 /*
  * Emits a context event with the given |name|.
  */
-#define OSSL_USDT_new_context(name)                                                                               \
-    do {                                                                                                          \
-        OSSL_USDT_DATA data_[] = { { "name", OSSL_USDT_STRING(name) } };                                          \
-        DTRACE_PROBE4(crypto_auditing, new_context_with_data, OSSL_USDT_GLOBAL_CONTEXT, OSSL_USDT_GLOBAL_CONTEXT, \
-            data_, sizeof(data_) / sizeof(data_[0]));                                                             \
+#define OSSL_USDT_new_context(context, name)                                    \
+    do {                                                                        \
+        OSSL_USDT_DATA data_[] = { { "name", OSSL_USDT_STRING(name) } };        \
+        DTRACE_PROBE4(crypto_auditing, new_context_with_data, context, context, \
+            data_, sizeof(data_) / sizeof(data_[0]));                           \
     } while (0)
 
 /*
  * Combines OSSL_USDT_new_context() followed by OSSL_USDT_data() as a
  * single probe.
  */
-#define OSSL_USDT_new_context_with_data(name, ...)                                                                \
-    do {                                                                                                          \
-        OSSL_USDT_DATA data_[] = { { "name", OSSL_USDT_STRING(name) }, __VA_ARGS__ };                             \
-        DTRACE_PROBE4(crypto_auditing, new_context_with_data, OSSL_USDT_GLOBAL_CONTEXT, OSSL_USDT_GLOBAL_CONTEXT, \
-            data_, sizeof(data_) / sizeof(data_[0]));                                                             \
+#define OSSL_USDT_new_context_with_data(context, name, ...)                           \
+    do {                                                                              \
+        OSSL_USDT_DATA data_[] = { { "name", OSSL_USDT_STRING(name) }, __VA_ARGS__ }; \
+        DTRACE_PROBE4(crypto_auditing, new_context_with_data, context, context,       \
+            data_, sizeof(data_) / sizeof(data_[0]));                                 \
     } while (0)
 
 /*
  * Emits multiple data events at once as a variadic array of
  * OSSL_USDT_DATA in the current event context.
  */
-#define OSSL_USDT_data(...)                                                                                      \
-    do {                                                                                                         \
-        OSSL_USDT_DATA data_[] = { __VA_ARGS__ };                                                                \
-        DTRACE_PROBE3(crypto_auditing, data, OSSL_USDT_GLOBAL_CONTEXT, data_, sizeof(data_) / sizeof(data_[0])); \
+#define OSSL_USDT_data(context, ...)                                                            \
+    do {                                                                                        \
+        OSSL_USDT_DATA data_[] = { __VA_ARGS__ };                                               \
+        DTRACE_PROBE3(crypto_auditing, data, context, data_, sizeof(data_) / sizeof(data_[0])); \
     } while (0)
+
+/*
+ * Asserts an explicit parent-child relationship of context.
+ */
+#define OSSL_USDT_new_child(context, parent) \
+    DTRACE_PROBE2(crypto_auditing, new_context, context, parent)
 
 #ifdef __cplusplus
 }
@@ -75,9 +77,10 @@ typedef struct ossl_usdt_data_st {
 #define OSSL_USDT_WORD(w)
 #define OSSL_USDT_BLOB(b, s)
 
-#define OSSL_USDT_new_context(name)
-#define OSSL_USDT_new_context_with_data(name, ...)
-#define OSSL_USDT_data(...)
+#define OSSL_USDT_new_context(context, name)
+#define OSSL_USDT_new_context_with_data(context, name, ...)
+#define OSSL_USDT_data(context, ...)
+#define OSSL_USDT_new_child(context, parent)
 
 #endif
 #endif /* OSSL_USDT_H */
