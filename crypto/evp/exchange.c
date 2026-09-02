@@ -16,6 +16,7 @@
 #include "internal/provider.h"
 #include "internal/core.h"
 #include "internal/numbers.h" /* includes SIZE_MAX */
+#include "internal/usdt.h"
 #include "crypto/evp.h"
 #include "evp_local.h"
 
@@ -481,6 +482,11 @@ int EVP_PKEY_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *pkeylen)
 
     ret = ctx->op.kex.exchange->derive(ctx->op.kex.algctx, key, pkeylen,
         key != NULL ? *pkeylen : 0);
+
+    if (ret == 1 && key != NULL) {
+        OSSL_USDT_new_context_with_data(ctx, "pk::derive",
+            { "pk::group", OSSL_USDT_STRING(ctx->keytype) });
+    }
 
     return ret;
 }
