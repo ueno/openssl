@@ -1800,7 +1800,7 @@ static int set_client_ciphersuite(SSL_CONNECTION *s,
     }
     s->s3.tmp.new_cipher = c;
 
-    OSSL_USDT_data({ "tls::ciphersuite", OSSL_USDT_WORD(c->id) });
+    OSSL_USDT_data(s, { "tls::ciphersuite", OSSL_USDT_WORD(SSL_CIPHER_get_protocol_id(c)) });
 
     return 1;
 }
@@ -2028,7 +2028,7 @@ MSG_PROCESS_RETURN tls_process_server_hello(SSL_CONNECTION *s, PACKET *pkt)
             goto err;
         }
 
-        OSSL_USDT_data(
+        OSSL_USDT_data(s,
             { "tls::protocol_version", OSSL_USDT_WORD(s->version) });
     }
 
@@ -2620,7 +2620,7 @@ WORK_STATE tls_post_process_server_certificate(SSL_CONNECTION *s,
      */
     ERR_set_mark();
 
-    OSSL_USDT_new_context("tls::verify_cert_chain");
+    OSSL_USDT_new_context(s, "tls::verify_cert_chain");
 
     i = ssl_verify_cert_chain(s, s->session->peer_chain);
     if (i <= 0 && s->verify_mode != SSL_VERIFY_NONE) {

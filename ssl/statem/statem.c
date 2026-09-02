@@ -391,7 +391,7 @@ static int state_machine(SSL_CONNECTION *s, int server)
 
     st->in_handshake++;
 
-    OSSL_USDT_new_context_with_data("tls::handshake",
+    OSSL_USDT_new_context_with_data(s, "tls::handshake",
         { "tls::role", OSSL_USDT_STRING(s->server ? "server" : "client") });
 
     if (!SSL_in_init(ssl) || SSL_in_before(ssl)) {

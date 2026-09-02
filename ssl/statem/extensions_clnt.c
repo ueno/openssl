@@ -2309,7 +2309,7 @@ int tls_parse_stoc_key_share(SSL_CONNECTION *s, PACKET *pkt,
         return 0;
     }
 
-    OSSL_USDT_new_context_with_data("tls::key_exchange",
+    OSSL_USDT_new_context_with_data(s, "tls::key_exchange",
         { "tls::group", OSSL_USDT_WORD(group_id) });
 
     if (!ginf->is_kem) {
