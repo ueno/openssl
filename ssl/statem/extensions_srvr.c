@@ -2080,7 +2080,7 @@ EXT_RETURN tls_construct_stoc_key_share(SSL_CONNECTION *s, WPACKET *pkt,
         return EXT_RETURN_FAIL;
     }
 
-    OSSL_USDT_new_context_with_data("tls::key_exchange",
+    OSSL_USDT_new_context_with_data(SSL_CONNECTION_GET_CTX(s), "tls::key_exchange",
         { "tls::group", OSSL_USDT_WORD(ginf->group_id) });
 
     if (!ginf->is_kem) {

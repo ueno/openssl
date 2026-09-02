@@ -22,6 +22,7 @@
 #include <openssl/core_names.h>
 #include "internal/cryptlib.h"
 #include "internal/ssl_unwrap.h"
+#include "internal/usdt.h"
 #include <openssl/ocsp.h>
 
 #define TLS13_NUM_CIPHERS OSSL_NELEM(tls13_ciphers)
@@ -5501,6 +5502,8 @@ int ssl_derive(SSL_CONNECTION *s, EVP_PKEY *privkey, EVP_PKEY *pubkey, int gense
     }
 
     pctx = EVP_PKEY_CTX_new_from_pkey(sctx->libctx, privkey, sctx->propq);
+
+    OSSL_USDT_new_child(sctx, pctx);
 
     if (EVP_PKEY_derive_init(pctx) <= 0
         || EVP_PKEY_derive_set_peer(pctx, pubkey) <= 0

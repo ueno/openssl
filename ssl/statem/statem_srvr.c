@@ -2109,7 +2109,7 @@ static int tls_early_post_process_client_hello(SSL_CONNECTION *s)
         goto err;
     }
 
-    OSSL_USDT_data({ "tls::protocol_version", OSSL_USDT_WORD(s->version) });
+    OSSL_USDT_data(sctx, { "tls::protocol_version", OSSL_USDT_WORD(s->version) });
 
     /* TLSv1.3 specifies that a ClientHello must end on a record boundary */
     if (SSL_CONNECTION_IS_VERSION13(s)
@@ -2207,7 +2207,7 @@ static int tls_early_post_process_client_hello(SSL_CONNECTION *s)
         }
         s->s3.tmp.new_cipher = cipher;
 
-        OSSL_USDT_data({ "tls::ciphersuite", OSSL_USDT_WORD(cipher->id) });
+        OSSL_USDT_data(sctx, { "tls::ciphersuite", OSSL_USDT_WORD(cipher->id) });
     }
 
     /* We need to do this before getting the session */
@@ -2721,7 +2721,7 @@ WORK_STATE tls_post_process_client_hello(SSL_CONNECTION *s, WORK_STATE wst)
                 }
                 s->s3.tmp.new_cipher = cipher;
 
-                OSSL_USDT_data({ "tls::ciphersuite", OSSL_USDT_WORD(cipher->id) });
+                OSSL_USDT_data(SSL_CONNECTION_GET_CTX(s), { "tls::ciphersuite", OSSL_USDT_WORD(cipher->id) });
             }
             if (!s->hit) {
                 if (!tls_choose_sigalg(s, 1)) {
@@ -2742,7 +2742,7 @@ WORK_STATE tls_post_process_client_hello(SSL_CONNECTION *s, WORK_STATE wst)
             /* Session-id reuse */
             s->s3.tmp.new_cipher = s->session->cipher;
 
-            OSSL_USDT_data({ "tls::ciphersuite", OSSL_USDT_WORD(s->s3.tmp.new_cipher->id) });
+            OSSL_USDT_data(SSL_CONNECTION_GET_CTX(s), { "tls::ciphersuite", OSSL_USDT_WORD(s->s3.tmp.new_cipher->id) });
         }
 
         /*
@@ -4333,7 +4333,7 @@ WORK_STATE tls_post_process_client_certificate(SSL_CONNECTION *s,
         if (s->rwstate == SSL_RETRY_VERIFY)
             s->rwstate = SSL_NOTHING;
 
-        OSSL_USDT_new_context("tls::verify_cert_chain");
+        OSSL_USDT_new_context(SSL_CONNECTION_GET_CTX(s), "tls::verify_cert_chain");
 
         i = ssl_verify_cert_chain(s, sk);
         if (i > 0 && s->rwstate == SSL_RETRY_VERIFY) {
